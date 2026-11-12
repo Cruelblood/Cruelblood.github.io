@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Mascota · Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf7f2; --card:#fff; --ink:#1b1b1b; --muted:#6e6a64;
+    --accent:#f06a1d; --accent-dark:#c9530f; --accent-soft:#fdeadf; --line:#ebe4da;
+    --dog:#e8f1ec; --dog-ink:#2f6b4f; --cat:#efe9f8; --cat-ink:#6a4a9c;
+    --wa:#25d366;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{color-scheme:light}
+  /* Texto oscuro fijo en botones y campos: evita que el modo oscuro del teléfono los pinte de blanco */
+  button,input,select{color:var(--ink);-webkit-text-fill-color:currentColor}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  a{color:inherit}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+  h1,h2,.display{font-family:'Bricolage Grotesque',system-ui,sans-serif}
+
+  header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .bar{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .logo img{height:52px;display:block}
+  .top-wa{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;text-decoration:none;background:var(--wa);color:#fff;padding:9px 15px;border-radius:999px}
+
+  .hero{padding:40px 0 26px;display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:center}
+  .hero h1{font-size:clamp(32px,5vw,52px);line-height:1.04;letter-spacing:-.02em}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p{color:var(--muted);margin-top:14px;max-width:500px;font-size:17px}
+  .stats{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:13px;color:var(--muted)}
+  .stat b{display:block;font-size:20px;color:var(--ink);font-family:'Bricolage Grotesque',sans-serif}
+  .hero-art{display:flex;justify-content:center;align-items:flex-end;gap:0;height:240px}
+  .hero-art img{height:100%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(0,0,0,.12))}
+  .hero-art img:nth-child(1){height:78%;transform:rotate(-6deg) translateX(18px)}
+  .hero-art img:nth-child(2){z-index:2}
+  .hero-art img:nth-child(3){height:78%;transform:rotate(6deg) translateX(-18px)}
+  @media (max-width:760px){.hero{grid-template-columns:1fr;padding-top:28px}.hero-art{display:none}}
+
+  .controls{display:flex;flex-direction:column;gap:12px;padding:8px 0 22px}
+  .search{position:relative}
+  .search input{width:100%;padding:14px 16px 14px 44px;border-radius:14px;border:1px solid var(--line);background:#fff;font:inherit;font-size:16px;outline:none}
+  .search input:focus{border-color:var(--accent)}
+  .search svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .row{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .row::-webkit-scrollbar{display:none}
+  .row .lbl{font-size:13px;color:var(--muted);font-weight:500;min-width:62px;flex-shrink:0}
+  /* En PC (mouse y pantalla ancha): los filtros bajan a una segunda línea en vez de deslizar */
+  @media (min-width:768px) and (hover:hover){
+    .row{flex-wrap:wrap;overflow:visible;position:relative;padding-left:72px}
+    .row .lbl{position:absolute;left:0;top:8px}
+  }
+  .chip{border:1px solid var(--line);background:#fff;padding:7px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink);white-space:nowrap;flex-shrink:0}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
+  .count{font-size:14px;color:var(--muted)}
+  select{font:inherit;font-size:14px;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:#fff}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding-bottom:40px}
+  .card{background:var(--card);border-radius:18px;border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.07)}
+  /* Caja de foto con proporción fija: toda imagen se escala (sube o baja) para llenar la misma altura */
+  .card .ph{background:#fbf9f6;aspect-ratio:4/5;position:relative;overflow:hidden}
+  .card .ph img{position:absolute;inset:8% 10% 6%;width:80%;height:86%;object-fit:contain;object-position:center bottom;mix-blend-mode:multiply}
+  .tag{position:absolute;z-index:2;box-shadow:0 1px 4px rgba(0,0,0,.18);top:10px;left:10px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--dog);color:var(--dog-ink)}
+  .tag.gato{background:var(--cat);color:var(--cat-ink)}
+  .tag.oferta{left:auto;right:10px;background:var(--accent);color:#fff;font-size:13px;padding:5px 12px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .old{text-decoration:line-through;color:var(--muted);font-size:13px;margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:500}
+  .big-price .old{font-size:16px}
+  .variant .off{color:var(--accent-dark);font-weight:700}
+  .card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px;flex:1}
+  .brand{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .name{font-weight:700;font-size:15.5px;line-height:1.3}
+  .meta{font-size:13px;color:var(--muted)}
+  .price{margin-top:auto;padding-top:10px}
+  .price small{font-size:12px;color:var(--muted);display:block;line-height:1.2}
+  .price b{font-size:18px;font-family:'Bricolage Grotesque',sans-serif;color:var(--accent-dark)}
+  .price b.ask{font-size:14px;color:var(--ink);font-family:'DM Sans',sans-serif}
+  .empty{text-align:center;color:var(--muted);padding:40px 0;grid-column:1/-1}
+  .note{font-size:13px;color:var(--muted);padding-bottom:44px}
+
+  .modal{position:fixed;inset:0;background:rgba(20,20,20,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal.open{display:flex}
+  .sheet{background:#fff;border-radius:22px;max-width:800px;width:100%;max-height:92vh;overflow:auto;display:grid;grid-template-columns:1fr 1.1fr;position:relative}
+  .sheet .ph{background:#fbf9f6;display:grid;place-items:center;padding:28px}
+  .sheet .ph img{width:100%;height:380px;object-fit:contain;mix-blend-mode:multiply}
+  .sheet .info{padding:26px 24px;display:flex;flex-direction:column;gap:10px}
+  .sheet h2{font-size:26px;line-height:1.1;letter-spacing:-.01em}
+  .sheet ul{list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
+  .sheet li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+  .sheet li span{color:var(--muted)}
+  .sheet li b{font-weight:500;text-align:right}
+  .vlabel{font-size:13px;font-weight:700;margin-top:4px}
+  .variants{display:flex;flex-wrap:wrap;gap:8px}
+  .variant{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer;text-align:left;line-height:1.25}
+  .variant small{display:block;color:var(--muted);font-size:12px}
+  .variant.on{border-color:var(--accent);background:var(--accent-soft)}
+  .variant.out{cursor:not-allowed;opacity:.55;background:#f4f1ec}
+  .variant.out s{color:var(--muted)}
+  .variant.out small{color:#b0483a;font-weight:700}
+  .variant .vthumb{width:34px;height:34px;object-fit:contain;mix-blend-mode:multiply;display:block;margin:0 auto 4px}
+  .variant.has-img{text-align:center;min-width:86px}
+  .meta .more{color:var(--accent-dark);font-weight:700}
+  .big-price{font-family:'Bricolage Grotesque',sans-serif;font-size:30px;color:var(--accent-dark);line-height:1}
+  .big-price.ask{font-size:20px;color:var(--ink)}
+  .wa{margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--wa);color:#fff;font-weight:700;text-decoration:none;padding:13px;border-radius:14px}
+  .close{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:none;background:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2}
+  @media (max-width:640px){.sheet{grid-template-columns:1fr}.sheet .ph{padding:20px}.sheet .ph img{height:220px}}
+
+  @media (max-width:520px){
+    .grid{grid-template-columns:1fr 1fr;gap:10px}
+    .card .body{padding:10px 11px 12px}
+    .name{font-size:14px}
+    .price b{font-size:16px}
+    .logo img{height:44px}
+  }
+
+  footer{background:var(--ink);color:#d8d3cc;padding:32px 0;font-size:14px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:20px 40px;justify-content:space-between;align-items:flex-start}
+  .foot-col{display:flex;flex-direction:column;gap:6px}
+  .foot-title{color:#fff;font-weight:700}
+  .horario{border-collapse:collapse}
+  .horario td{padding:2px 0}
+  .horario td:first-child{padding-right:18px}
+  footer strong{color:#fff;font-family:'Bricolage Grotesque',sans-serif;font-size:18px}
+  footer a{color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#"><img src="img/logo.webp" alt="Super Mascota"></a>
+    <a class="top-wa" id="topWa" href="#" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.3 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg>
+      Escríbenos
+    </a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Todo el alimento que tu mascota <em>ama</em>, en un solo lugar.</h1>
+      <p>Revisa nuestro catálogo de alimentos para perros y gatos, y consúltanos por WhatsApp por stock y despacho.</p>
+      <div class="stats" id="stats"></div>
+    </div>
+    <div class="hero-art">
+      <img src="img/leo-kitten.webp" alt="">
+      <img src="img/bravery-dog-salmon.webp" alt="">
+      <img src="img/alfa-cachorro.webp" alt="">
+    </div>
+  </section>
+
+  <section class="controls">
+    <label class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Buscar por nombre, marca o sabor…">
+    </label>
+    <div class="row" data-group="especie"><span class="lbl">Mascota</span></div>
+    <div class="row" data-group="marca"><span class="lbl">Marca</span></div>
+    <div class="row" data-group="etapa"><span class="lbl">Etapa</span></div>
+  </section>
+
+  <div class="toolbar">
+    <p class="count" id="count"></p>
+    <select id="orden" aria-label="Ordenar">
+      <option value="marca">Ordenar por marca</option>
+      <option value="asc">Menor precio</option>
+      <option value="desc">Mayor precio</option>
+    </select>
+  </div>
+  <section class="grid" id="grid"></section>
+  <p class="note">Precios referenciales, sujetos a cambio y a disponibilidad de stock.</p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><strong>Super Mascota</strong><br>Alimento para perros y gatos</div>
+    <div class="foot-col">
+      <div>WhatsApp: <a id="footWa" href="#" target="_blank" rel="noopener">+56 9 2121 3246</a></div>
+      <div>📍 Chiguayante, O'Higgins 2550</div>
+    </div>
+    <div class="foot-col">
+      <div class="foot-title">Horario de atención</div>
+      <table class="horario">
+        <tr><td>Lunes a viernes</td><td>10:00 – 19:30</td></tr>
+        <tr><td>Sábado</td><td>10:00 – 16:00</td></tr>
+        <tr><td>Domingo</td><td>10:00 – 14:00</td></tr>
+      </table>
+    </div>
+  </div>
+</footer>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<script>
+  // Número de WhatsApp de la tienda (solo dígitos, con código de país)
+  const WHATSAPP = "56921213246";
+
+  // ===== PRODUCTOS =====
+  // Cada producto tiene sus formatos (variantes) con precio. precio null = "Consultar precio".
+  // Para agregar uno nuevo, copia un bloque y cambia los datos.
+  const productos = [
+    // ---------- ALFA DOG ----------
+    {nombre:"Alfa Dog Adulto Razas Medianas y Grandes", marca:"Alfa Dog", especie:"Perro", etapa:"Adulto", tamano:"Medianas y grandes", sabor:"Carne y arroz", img:"alfa-adulto",
+     desc:"Nutrición completa para el día a día de tu perro grande. Con DHA y EPA, omega 3 y 6 para un pelaje brillante y croquetas de carne y arroz que les encantan.",
+     variantes:[{t:"20 kg", p:37980}]},
+    {nombre:"Alfa Dog Adulto Razas Pequeñas", marca:"Alfa Dog", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"Pollo y arroz", img:"alfa-pequenas",
+     desc:"Pensado para los más chicos de la casa: croquetas pequeñas de pollo y arroz, fáciles de masticar, con L-carnitina y omegas para mantenerlos activos y con buen pelaje.",
+     variantes:[{t:"3 kg", p:8490},{t:"10 kg", p:22490}]},
+    {nombre:"Alfa Dog Cachorro", marca:"Alfa Dog", especie:"Perro", etapa:"Cachorro", tamano:"Todas las razas", sabor:"Carne y arroz", img:"alfa-cachorro",
+     desc:"El mejor comienzo para tu cachorro. Con DHA para su desarrollo, lisina y L-carnitina para crecer fuerte y sano, en un sabor carne y arroz irresistible.",
+     variantes:[{t:"3 kg", p:8490},{t:"10 kg", p:22490}]},
+    {nombre:"Alfa Dog Senior +7", marca:"Alfa Dog", especie:"Perro", etapa:"Senior", tamano:"Según formato", sabor:"Carne y arroz", img:"alfa-senior",
+     desc:"Para tu compañero de 7 años o más. Con L-carnitina, apoyo articular y croquetas fáciles de masticar, para que siga disfrutando cada paseo.",
+     variantes:[{t:"3 kg", n:"razas pequeñas", p:8490},{t:"10 kg", n:"razas pequeñas", p:25490},{t:"20 kg", n:"medianas y grandes", p:39990}]},
+    {nombre:"Alfa Dog Adulto Pork", marca:"Alfa Dog", especie:"Perro", etapa:"Adulto", tamano:"Medianas y grandes", sabor:"Cerdo", img:"alfa-pork",
+     desc:"Proteína animal de cerdo como primer ingrediente y 27% de proteína. Una alternativa sabrosa y completa para perros adultos medianos y grandes.",
+     variantes:[{t:"20 kg", p:38490}]},
+    {nombre:"Alfa Dog Tradicional", marca:"Alfa Dog", especie:"Perro", etapa:"Adulto", tamano:"Medianas y grandes", sabor:"Carne y arroz", img:"alfa-tradicional",
+     desc:"El clásico rendidor para perros adultos medianos y grandes: completo y balanceado, para piel sana, pelaje brillante y músculos fuertes, en formato de 25 kg.",
+     variantes:[{t:"25 kg", p:35990}]},
+
+    // ---------- BRAVERY PERRO ----------
+    {nombre:"Bravery Dog Adulto Salmón", marca:"Bravery", especie:"Perro", etapa:"Adulto", tamano:"Según formato", sabor:"Salmón", img:"bravery-dog-salmon",
+     desc:"Super premium hecho en España, sin granos y con una sola proteína animal: salmón. Hipoalergénico y con antioxidantes naturales, ideal para perros sensibles.",
+     variantes:[{t:"2 kg", p:22900},{t:"12 kg", p:67990}]},
+    {nombre:"Bravery Dog Adulto Cordero", marca:"Bravery", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"Cordero", img:"bravery-dog-cordero",
+     desc:"Receta monoproteica de cordero, sin granos y sin gluten, para perros pequeños adultos con estómagos o pieles sensibles. 100% natural.",
+     variantes:[{t:"2 kg", p:22900}]},
+    {nombre:"Bravery Dog Cachorro", marca:"Bravery", especie:"Perro", etapa:"Cachorro", tamano:"—", sabor:"—", img:"bravery-dog-pollo", // imagen referencial
+     desc:"Nutrición super premium sin granos para que tu cachorro crezca sano, con ingredientes naturales y antioxidantes desde el primer día.",
+     variantes:[{t:"2 kg", p:22990}]},
+
+    // ---------- BELCANDO ----------
+    {nombre:"Belcando Finest Croc", marca:"Belcando", especie:"Perro", etapa:"Adulto", tamano:"XS a M", sabor:"Ave", img:"belcando-croc",
+     desc:"Para perros adultos pequeños y medianos que son exigentes con la comida. Rico en ave, y si le agregas un poco de agua tibia forma una salsa irresistible. Hecho en Alemania.", variantes:[{t:"1 kg", p:9900}]},
+    {nombre:"Belcando Finest GF Salmon", marca:"Belcando", especie:"Perro", etapa:"Adulto", tamano:"XS a M", sabor:"Salmón", img:"belcando-gf-salmon",
+     desc:"Sin granos y con pescado como única proteína animal: la solución para perros pequeños y medianos con sensibilidad a cereales o a carnes. Hecho en Alemania.", variantes:[{t:"1 kg", p:9900}]},
+    {nombre:"Belcando Finest GF Senior", marca:"Belcando", especie:"Perro", etapa:"Senior", tamano:"XS a M", sabor:"Ave", img:"belcando-gf-senior",
+     desc:"Para perros mayores o con sobrepeso, de razas pequeñas y medianas, sensibles a los cereales. Sin granos, con amaranto y carne fresca, y su clásico efecto salsa.", variantes:[{t:"1 kg", p:9900}]},
+    {nombre:"Belcando Finest Light", marca:"Belcando", especie:"Perro", etapa:"Adulto", tamano:"XS a M", sabor:"Ave y pescado", img:"belcando-light",
+     desc:"Para perros pequeños y medianos con sobrepeso, poca actividad o mayores. Menos grasa, L-carnitina para quemar grasa y un sabor que no los hace extrañar nada.", variantes:[{t:"1 kg", p:9900}]},
+    {nombre:"Belcando Puppy Gravy", marca:"Belcando", especie:"Perro", etapa:"Cachorro", tamano:"Todas las razas (XS a XL)", sabor:"Ave", img:"belcando-puppy",
+     desc:"Ideal para el destete: mezclado con agua tibia forma una salsa que invita a comer. Con ave, arroz y huevo, fácil de digerir, para cachorros de todas las razas.", variantes:[{t:"1 kg", p:9900}]},
+
+    // ---------- FIT FORMULA / NÓMADE PERRO ----------
+    {nombre:"Fit Formula Perro Adulto", marca:"Fit Formula", especie:"Perro", etapa:"Adulto", tamano:"—", sabor:"—", img:"fit-perro",
+     desc:"Alimento chileno elaborado con ingredientes de alta digestibilidad para que tu perro aproveche mejor cada nutriente. Completo y balanceado para su día a día.", variantes:[{t:"20 kg", p:39990}]},
+    {nombre:"Nómade Adulto Razas Medianas y Grandes", marca:"Nómade", especie:"Perro", etapa:"Adulto", tamano:"Medianas y grandes", sabor:"—", img:"nomade-adulto",
+     desc:"Premium chileno con proteína de origen animal como ingrediente principal. Con omega 3 y 6, maqui y quillay, para perros grandes que viven en movimiento.", variantes:[{t:"20 kg", p:37980}]},
+    {nombre:"Nómade Adulto Razas Pequeñas", marca:"Nómade", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"—", img:"nomade-pequenas",
+     desc:"Premium chileno para perros pequeños, con proteína animal como ingrediente principal, omega 3 y 6, y el aporte natural del maqui y el quillay.", variantes:[{t:"10 kg", p:23490}]},
+    {nombre:"Nómade Cachorro", marca:"Nómade", especie:"Perro", etapa:"Cachorro", tamano:"Todas las razas", sabor:"—", img:"nomade-cachorro",
+     desc:"Desarrollado por expertos en nutrición animal para cachorros de todas las razas. Con omega 3 y 6, maqui y quillay, para crecer sanos y llenos de energía.", variantes:[{t:"10 kg", p:24990}]},
+
+    // ---------- BALANCED (VITALCAN) ----------
+    {nombre:"Balanced Natural Recipe Cerdo", marca:"Balanced", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"Cerdo", img:"balanced-cerdo",
+     desc:"Receta natural con cerdo, una proteína poco común que puede ser buena opción para perros que no toleran las carnes más habituales. Sin trigo ni soja, con antioxidantes naturales y foco en el cuidado de la piel.", variantes:[{t:"3 kg", p:14990}]},
+    {nombre:"Balanced Natural Recipe Cordero", marca:"Balanced", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"Cordero", img:"balanced-cordero",
+     desc:"Receta natural con cordero, una proteína distinta a la habitual para perros con estómago o piel sensible. Sin trigo ni soja, con antioxidantes naturales y foco en el cuidado de la piel.", variantes:[{t:"3 kg", p:14990}]},
+    {nombre:"Balanced Natural Recipe Salmón Rosado", marca:"Balanced", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas", sabor:"Salmón rosado", img:"balanced-salmon",
+     desc:"Receta natural con salmón rosado, rico en omegas para una piel sana y un pelaje brillante. Sin trigo ni soja y con antioxidantes naturales. Una alternativa económica para perros sensibles.", variantes:[{t:"3 kg", p:14990}]},
+
+    // ---------- BRIT PERRO ----------
+    {nombre:"Brit Premium by Nature Adulto Small", marca:"Brit", especie:"Perro", etapa:"Adulto", tamano:"Pequeñas (1 a 10 kg)", sabor:"Pollo", img:"brit-adult-s",
+     desc:"Alto en pollo (50%) y elaborado con ingredientes naturales para perros adultos de 1 a 10 kg. Apoya la piel, el pelaje y el corazón.", variantes:[{t:"3 kg", p:19490}]},
+    {nombre:"Brit Premium by Nature Junior Small", marca:"Brit", especie:"Perro", etapa:"Cachorro", tamano:"Pequeñas", sabor:"Pollo", img:"brit-junior-s",
+     desc:"Para cachorros de razas pequeñas, con 55% de pollo. Apoya el desarrollo de huesos, articulaciones y dientes, y sus defensas.", variantes:[{t:"3 kg", p:19490}]},
+
+    // ---------- HIGIENE: PADS DE ENTRENAMIENTO ----------
+    {nombre:"Hey! Training Pads", marca:"Hey!", especie:"Perro", etapa:"Cachorro y adulto", tamano:"60 × 58 cm", sabor:"—", img:"pads-hey",
+     desc:"Sabanillas extra absorbentes para entrenar a tu perro a hacer sus necesidades en el lugar correcto. Con cinta adhesiva para fijarlas al piso y que no se muevan.",
+     variantes:[{t:"30 unidades", p:null}]},
+    {nombre:"Fit Formula Training Pads", marca:"Fit Formula", especie:"Perro", etapa:"Cachorro y adulto", tamano:"60 × 60 cm", sabor:"—", img:"pads-fit",
+     desc:"Sabanillas de entrenamiento con 6 capas a prueba de filtraciones. Antibacteriales, antideslizantes y con agente atrayente y neutralizador de olores, para cachorros y adultos.",
+     variantes:[{t:"10 unidades", p:3500}]},
+
+    // ---------- BRAVERY GATO ----------
+    {nombre:"Bravery Cat Adulto Pollo", marca:"Bravery", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pollo", img:"bravery-cat-pollo",
+     desc:"Super premium sin granos, con pollo como única proteína animal. Hipoalergénico y 100% natural, para gatos adultos que merecen lo mejor.",
+     variantes:[{t:"2 kg", p:22990},{t:"7 kg", p:52990}]},
+    {nombre:"Bravery Cat Adulto Salmón", marca:"Bravery", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Salmón", img:"bravery-cat-salmon",
+     desc:"Salmón como única proteína animal, sin granos ni gluten. Una receta natural e hipoalergénica para gatos adultos amantes del pescado.",
+     variantes:[{t:"2 kg", p:22990},{t:"7 kg", p:54990}]},
+    {nombre:"Bravery Cat Cachorro", marca:"Bravery", especie:"Gato", etapa:"Cachorro", tamano:"—", sabor:"—", img:"bravery-cat-pollo", // imagen referencial
+     desc:"Nutrición super premium y sin granos para gatitos en crecimiento, con ingredientes naturales y antioxidantes.", variantes:[{t:"2 kg", p:22990}]},
+    {nombre:"Bravery Cat Senior", marca:"Bravery", especie:"Gato", etapa:"Senior", tamano:"—", sabor:"—", img:"bravery-cat-herring", // imagen referencial (Herring)
+     desc:"Receta super premium sin granos adaptada a gatos mayores, con ingredientes naturales para acompañarlos en esta etapa.", variantes:[{t:"2 kg", p:24690}]},
+
+    // ---------- LEONARDO ----------
+    {nombre:"Leonardo Adult Duck", marca:"Leonardo", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pato", img:"leo-duck",
+     desc:"Con 30% de ave y pato frescos, muy digestible y sabroso. Ayuda a eliminar las bolas de pelo, ideal también para gatos de pelo largo. Hecho en Alemania.",
+     variantes:[{t:"1,8 kg", p:26900},{t:"7,5 kg", p:65900}]},
+    {nombre:"Leonardo Adult GF Salmón", marca:"Leonardo", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Salmón", img:"leo-gf-salmon",
+     desc:"Sin granos, con 30% de salmón fresco, krill y chía ricos en omegas. Perfecto para gatos sensibles y amantes del pescado.",
+     variantes:[{t:"1,8 kg", p:26900},{t:"7,5 kg", p:69500}]},
+    {nombre:"Leonardo Light & Sterilised", marca:"Leonardo", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Ave", img:"leo-light",
+     desc:"Menos calorías para gatos esterilizados o con tendencia a subir de peso, sin renunciar al sabor del ave fresca. Ayuda a mantener un pH urinario adecuado.",
+     variantes:[{t:"1,8 kg", p:26990},{t:"7,5 kg", p:64900}]},
+    {nombre:"Leonardo Kitten", marca:"Leonardo", especie:"Gato", etapa:"Cachorro", tamano:"—", sabor:"Ave", img:"leo-kitten",
+     desc:"Croquetas extra pequeñas con 30% de ave fresca para los primeros 12 meses. Refuerza sus defensas y también sirve para gatas gestantes o en lactancia.",
+     variantes:[{t:"1,8 kg", p:22990, antes:26900},{t:"7,5 kg", p:61500}]},
+    {nombre:"Leonardo Senior", marca:"Leonardo", especie:"Gato", etapa:"Senior", tamano:"—", sabor:"Ave", img:"leo-senior",
+     desc:"Para gatos mayores: menos calorías para cuidar la figura y menos fósforo y sodio para proteger los riñones, con ave fresca extra.", variantes:[{t:"1,8 kg", p:26900}]},
+    {nombre:"Leonardo Fresh", marca:"Leonardo", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Salmón, carne o pato", img:"leo-fresh-salmon", vlabel:"Sabor (1,5 kg)",
+     desc:"Nutrición holística baja en carbohidratos: 85% carne o pescado fresco, sin granos ni papa. Ayuda a reducir el sarro y cuidar el pH urinario.",
+     variantes:[{t:"Salmón", n:"1,5 kg", p:28990},{t:"Carne", n:"1,5 kg", p:28990, agotado:true},{t:"Pato", n:"1,5 kg", p:28990}]},
+
+    {nombre:"Leonardo Lata 400 g", marca:"Leonardo", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pescado, conejo, pato o ave", img:"leo-lata-pescado",
+     desc:"Alimento húmedo completo hecho en Alemania con carne fresca, sin cereales. Una comida jugosa y muy apetitosa, ideal sola o combinada con su alimento seco.",
+     variantes:[{t:"Pescado", n:"400 g", p:4500, img:"leo-lata-pescado"},{t:"Conejo", n:"400 g", p:4500, img:"leo-lata-conejo"},{t:"Pato", n:"400 g", p:4500, img:"leo-lata-pato"},{t:"Ave", n:"400 g", p:4500, img:"leo-lata-ave"}]},
+
+    // ---------- AGILITY ----------
+    {nombre:"Agility Cats Urinary", marca:"Agility", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"—", img:"agility-urinary",
+     desc:"Para gatos desde los 12 meses. Ayuda a cuidar la salud urinaria y controlar el pH de la orina, con un aporte extra para piel y pelaje.", variantes:[{t:"1,5 kg", p:10990},{t:"10 kg", p:47490}]},
+    {nombre:"Agility Cats Adultos", marca:"Agility", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"—", img:"agility-adulto",
+     desc:"Nutrición completa para gatos desde los 12 meses: mantiene una masa muscular magra, cuida la salud urinaria y favorece un pelaje bonito.", variantes:[{t:"1,5 kg", p:10990}]},
+    {nombre:"Agility Cats Kitten", marca:"Agility", especie:"Gato", etapa:"Cachorro", tamano:"—", sabor:"—", img:"agility-kitten",
+     desc:"Para gatitos hasta los 12 meses. Apoya sus defensas, el desarrollo del cerebro y la visión, y huesos y dientes fuertes.", variantes:[{t:"1,5 kg", p:10990}]},
+
+    // ---------- NUTRIQUE ----------
+    {nombre:"Nutrique Sterilised / Healthy Weight", marca:"Nutrique", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pavo", img:"nutrique-sterilised",
+     desc:"Para gatos castrados o con sobrepeso. 80% de proteína animal (pavo y cerdo) y fibras que prolongan la saciedad para lograr un peso ideal de forma saludable.", variantes:[{t:"", p:19990}]},
+    {nombre:"Nutrique Healthy Maintenance", marca:"Nutrique", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pavo", img:"nutrique-healthy",
+     desc:"Para gatos adultos en su peso ideal. Pavo como proteína principal, probióticos y prebióticos, y frutas y hierbas como arándano, jengibre y zapallo.", variantes:[{t:"", p:19990}]},
+    {nombre:"Nutrique Healthy Maintenance 7+", marca:"Nutrique", especie:"Gato", etapa:"Senior", tamano:"—", sabor:"Pavo", img:"nutrique-senior",
+     desc:"Para gatos maduros de 7 años o más en peso ideal. Con pavo, 81% de proteína de origen animal, probióticos y prebióticos.", variantes:[{t:"", p:19990}]},
+    // ---------- FIT FORMULA / NÓMADE GATO ----------
+    {nombre:"Fit Formula Gato Adulto", marca:"Fit Formula", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"—", img:"fit-gato",
+     desc:"Alimento chileno completo y balanceado para gatos desde el año de vida. Ayuda a regular el pH urinario y a controlar el sarro.", variantes:[{t:"10 kg", p:29990}]},
+    {nombre:"Nómade Gato Adulto", marca:"Nómade", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Mix proteico", img:"nomade-gato",
+     desc:"Premium chileno con mix proteico de ave, cerdo, huevo y pescado. Ayuda a eliminar bolas de pelo, fortalece las defensas y reduce el riesgo de cálculos urinarios.", variantes:[{t:"10 kg", p:28990}]},
+    // ---------- BRIT GATO ----------
+    {nombre:"Brit Premium by Nature Adult Salmón", marca:"Brit", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Salmón", img:"brit-cat-salmon",
+     desc:"Receta con salmón y omega 3 para un pelaje brillante y espeso, con prebióticos y antioxidantes naturales que refuerzan sus defensas. Sin trigo.", variantes:[{t:"1,5 kg", p:14990}]},
+    {nombre:"Brit Premium by Nature Sterilized Pollo", marca:"Brit", especie:"Gato", etapa:"Adulto", tamano:"—", sabor:"Pollo", img:"brit-cat-sterilized",
+     desc:"Para gatos esterilizados: rico en pollo para mantener la masa muscular, con pH urinario óptimo y omega 3 para piel y pelaje. Sin trigo, maíz ni soya.", variantes:[{t:"1,5 kg", p:14990}]},
+    {nombre:"Brit Premium by Nature Kitten Pollo", marca:"Brit", especie:"Gato", etapa:"Cachorro", tamano:"—", sabor:"Pollo", img:"brit-cat-kitten",
+     desc:"Receta delicada con pollo para gatitos de 1 a 12 meses. Acompaña su crecimiento, sus defensas y el desarrollo de músculos y huesos.", variantes:[{t:"1,5 kg", p:14990}]},
+  ];
+
+  // ===== LÓGICA =====
+  const $ = s => document.querySelector(s);
+  const filtros = {especie:"Todos", marca:"Todos", etapa:"Todos"};
+  const clp = n => "$" + n.toLocaleString("es-CL");
+  const disponibles = p => p.variantes.filter(v => !v.agotado);
+  const precios = p => disponibles(p).map(v => v.p).filter(x => x != null);
+  const minP = p => { const a = precios(p); return a.length ? Math.min(...a) : null; };
+  const wa = txt => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(txt)}`;
+
+  $("#topWa").href = $("#footWa").href = wa("Hola Super Mascota, quiero hacer una consulta.");
+
+  const marcas = [...new Set(productos.map(p => p.marca))];
+  $("#stats").innerHTML = `
+    <div class="stat"><b>${productos.length}</b>productos</div>
+    <div class="stat"><b>${marcas.length}</b>marcas</div>
+    <div class="stat"><b>🐶 🐱</b>perros y gatos</div>`;
+
+  const orden = {especie:["Perro","Gato"], etapa:["Cachorro","Adulto","Senior"], marca:marcas};
+  document.querySelectorAll(".row[data-group]").forEach(row => {
+    const g = row.dataset.group;
+    ["Todos", ...orden[g]].forEach(v => {
+      const b = document.createElement("button");
+      b.className = "chip" + (v === "Todos" ? " on" : "");
+      b.textContent = v === "Perro" ? "🐶 Perros" : v === "Gato" ? "🐱 Gatos" : v;
+      b.onclick = () => {
+        filtros[g] = v;
+        row.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+        render();
+      };
+      row.appendChild(b);
+    });
+  });
+
+  function precioCard(p){
+    const a = precios(p);
+    if (!a.length) return `<b class="ask">Consultar precio</b>`;
+    if (a.length > 1 && Math.min(...a) !== Math.max(...a)) return `<small>Desde</small><b>${clp(Math.min(...a))}</b>`;
+    const v = disponibles(p)[0];
+    return `<small>${(a.length > 1 ? v.n : v.t) || "&nbsp;"}</small><b>${clp(v.p)}</b>${v.antes ? `<span class="old">${clp(v.antes)}</span>` : ""}`;
+  }
+
+  function render(){
+    const q = $("#q").value.trim().toLowerCase();
+    let lista = productos.filter(p =>
+      Object.entries(filtros).every(([k,v]) => v === "Todos" || p[k] === v) &&
+      (!q || [p.nombre,p.marca,p.sabor,p.tamano,p.etapa,p.especie].join(" ").toLowerCase().includes(q))
+    );
+    const o = $("#orden").value;
+    if (o !== "marca") lista = [...lista].sort((a,b) => {
+      const x = minP(a), y = minP(b);
+      if (x == null) return 1; if (y == null) return -1;
+      return o === "asc" ? x - y : y - x;
+    });
+    $("#count").textContent = `${lista.length} producto${lista.length===1?"":"s"}`;
+    const grid = $("#grid");
+    grid.innerHTML = lista.length ? "" : `<p class="empty">No encontramos productos con esos filtros.</p>`;
+    lista.forEach(p => {
+      const c = document.createElement("article");
+      c.className = "card";
+      c.innerHTML = `
+        <div class="ph"><span class="tag ${p.especie==="Gato"?"gato":""}">${p.especie}</span>${p.variantes.some(v => v.antes) ? `<span class="tag oferta">Oferta</span>` : ""}<img src="img/${p.img}.webp" alt="${p.nombre}" loading="lazy"></div>
+        <div class="body">
+          <div class="brand">${p.marca}</div>
+          <div class="name">${p.nombre}</div>
+          <div class="meta">${p.etapa}${p.variantes.some(v => v.img) ? ` · <span class="more">${p.variantes.length} sabores</span>` : (p.sabor !== "—" ? " · " + p.sabor : "")}</div>
+          <div class="price">${precioCard(p)}</div>
+        </div>`;
+      c.onclick = () => abrir(p);
+      grid.appendChild(c);
+    });
+  }
+
+  function abrir(p){
+    let sel = p.variantes.findIndex(v => v.p != null && !v.agotado); if (sel < 0) sel = 0;
+    const filas = [["Mascota",p.especie],["Etapa",p.etapa],["Tamaño",p.tamano],["Sabor",p.sabor]].filter(r => r[1] && r[1] !== "—");
+    $("#sheet").innerHTML = `
+      <button class="close" aria-label="Cerrar">×</button>
+      <div class="ph"><img src="img/${p.img}.webp" alt="${p.nombre}"></div>
+      <div class="info">
+        <div class="brand">${p.marca}</div>
+        <h2>${p.nombre}</h2>
+        <p style="color:var(--muted);font-size:15px">${p.desc}</p>
+        <ul>${filas.map(r => `<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join("")}</ul>
+        ${p.variantes.some(v => v.t) ? `<div class="vlabel">${p.vlabel || (p.variantes.some(v => v.img) ? "Sabor" : "Formato")}</div><div class="variants">${p.variantes.map((v,i) =>
+          v.agotado
+            ? `<button class="variant out" disabled><s>${v.t}</s><small>Agotado</small></button>`
+            : `<button class="variant${v.img ? " has-img" : ""}" data-i="${i}">${v.img ? `<img class="vthumb" src="img/${v.img}.webp" alt="">` : ""}${v.t}${v.antes ? ` <span class="off">· Oferta</span>` : ""}${v.n ? `<small>${v.n}</small>` : ""}</button>`).join("")}</div>` : ""}
+        <div id="bigPrice"></div>
+        <a class="wa" id="waBtn" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.3 0 .5l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg>
+          Consultar por WhatsApp
+        </a>
+      </div>`;
+    const upd = () => {
+      const v = p.variantes[sel];
+      document.querySelectorAll(".variant[data-i]").forEach(b => b.classList.toggle("on", +b.dataset.i === sel));
+      if (v && v.img) $("#sheet .ph img").src = `img/${v.img}.webp`;
+      $("#bigPrice").innerHTML = v && v.p != null
+        ? `<div class="big-price">${clp(v.p)}${v.antes ? `<span class="old">${clp(v.antes)}</span>` : ""}</div>`
+        : `<div class="big-price ask">Consultar precio</div>`;
+      const fmt = v && v.t ? ` (${v.t}${v.n ? ", " + v.n : ""})` : "";
+      $("#waBtn").href = wa(`Hola Super Mascota, me interesa: ${p.nombre}${fmt}. ¿Tienen disponible?`);
+    };
+    document.querySelectorAll(".variant[data-i]").forEach(b => b.onclick = () => { sel = +b.dataset.i; upd(); });
+    $(".close").onclick = cerrar;
+    upd();
+    $("#modal").classList.add("open");
+  }
+  function cerrar(){ $("#modal").classList.remove("open"); }
+  $("#modal").addEventListener("click", e => { if (e.target.id === "modal") cerrar(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(); });
+  $("#q").addEventListener("input", render);
+  $("#orden").addEventListener("change", render);
+  render();
+</script>
+</body>
+</html>
